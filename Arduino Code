@@ -1,0 +1,146 @@
+#include<TinyGPS.h>
+#include<SoftwareSerial.h>
+#include<LiquidCrystal.h>
+SoftwareSerial SIM900(2, 3);
+const int MQ3=6;     // pin configuration for peripherals
+const int Buzzer=A0;
+const int LED=A1;
+const int M1=A2;
+const int M2=A3;
+const int strtbtn=5; 
+
+int value;
+
+int state = 0;
+const int pin = 7;
+TinyGPS gps;
+LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
+
+void setup()
+{
+  Serial.begin(9600);
+  // pinmode configuration
+  pinMode(MQ3, INPUT);
+  pinMode(Buzzer, OUTPUT);
+  pinMode(strtbtn, INPUT );
+  pinMode(LED, OUTPUT);
+  pinMode(M1, OUTPUT);
+  pinMode(M2, OUTPUT);
+  // normal condition
+  digitalWrite(Buzzer,LOW);
+  digitalWrite(LED,LOW);
+  digitalWrite(M1,HIGH) ;
+  digitalWrite(M2,LOW) ;
+  // initializing GSM/GPS
+  SIM900.begin(9600); 
+  lcd.begin(16,2); 
+  pinMode(13,OUTPUT);
+  digitalWrite(13,LOW);
+  lcd.print(" Welcome ");
+  lcd.clear(); 
+  lcd.print("Vehicle Tracking");
+  lcd.setCursor(0,1);
+  lcd.print("    System      ");
+  delay(200);
+  lcd.clear(); 
+  lcd.print("GPS Initializing");
+  lcd.setCursor(0,1);
+  lcd.print("GPS is Ready");
+  delay(200);
+  lcd.clear();
+}
+
+void loop()
+{
+  value= digitalRead(MQ3);
+  if(strtbtn==LOW)   // checking for helmet
+  { 
+    lcd.print("Wear Helmet!");
+    delay(200);
+    lcd.clear(); 
+    digitalWrite(Buzzer,HIGH);
+    digitalWrite(LED,HIGH);
+    digitalWrite(M1,LOW);
+    digitalWrite(M2,LOW);
+  }
+   else if(value==1) // checking for alcohol
+  {
+   
+    lcd.print("Alcohol Detected");
+    delay(200);
+    lcd.clear(); 
+    digitalWrite(Buzzer,HIGH);
+    digitalWrite(LED,HIGH);
+    digitalWrite(M1,LOW);
+    digitalWrite(M2,LOW);
+  }
+  
+  else if(value==0&& strtbtn==HIGH)
+  { 
+    lcd.print("Vehicle Start");
+    delay(200);
+    lcd.clear();
+    digitalWrite(Buzzer,LOW);
+    digitalWrite(LED,LOW);
+    digitalWrite(M1,HIGH) ;
+    digitalWrite(M2,LOW) ;
+  }
+ 
+  // encoding gps data
+  bool newData = false;
+  unsigned long chars;
+  unsigned short sentences, failed;
+
+  
+  for (unsigned long start = millis(); millis() - start < 1000;)
+  {
+    while (Serial.available())
+    {
+      char c = Serial.read();
+        if (gps.encode(c)) 
+        newData = true;  
+    }
+  }
+  // invoking GSM to send message when accident detected by vibration sensor
+  if (newData)      
+  {
+    if (digitalRead(pin) == HIGH && state == 0 )
+    {
+      lcd.begin(16,2); 
+      pinMode(13,OUTPUT);
+      digitalWrite(13,LOW);
+      lcd.print("Accident Detected");
+      lcd.setCursor(0,1);
+      lcd.print(" call for SOS  ");
+      delay(200);
+      lcd.clear(); 
+      lcd.print(" Message sms: ");
+      lcd.setCursor(0,1);
+      lcd.print(" location sent ");
+      delay(200);
+      lcd.clear(); 
+     float flat, flon;
+    unsigned long age;
+    gps.f_get_position(&flat, &flon, &age);   
+    SIM900.print("AT+CMGF=1\r"); 
+    delay(400);
+    SIM900.println("AT + CMGS = \"+918848675980\""); // sending sos message
+    delay(300);
+    SIM900.print("Latitude = ");
+    SIM900.print(flat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : flat, 6);
+    SIM900.print(" Longitude = ");
+    SIM900.print(flon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : flon, 6);
+    delay(200);
+    SIM900.println((char)26); 
+    delay(200);
+    SIM900.println();
+    } 
+    
+    if (digitalRead(pin) == LOW)
+  {
+    state = 0;
+ 
+  }
+}
+}
+ 
