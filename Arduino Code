@@ -2,6 +2,7 @@
 #include<SoftwareSerial.h>
 #include<LiquidCrystal.h>
 SoftwareSerial SIM900(2, 3);
+
 const int MQ3=6;     // pin configuration for peripherals
 const int Buzzer=A0;
 const int LED=A1;
@@ -19,18 +20,23 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 void setup()
 {
   Serial.begin(9600);
+  
   // pinmode configuration
+  
   pinMode(MQ3, INPUT);
   pinMode(Buzzer, OUTPUT);
   pinMode(strtbtn, INPUT );
   pinMode(LED, OUTPUT);
   pinMode(M1, OUTPUT);
   pinMode(M2, OUTPUT);
-  // normal condition
-  digitalWrite(Buzzer,LOW);
+ 
+ // normal condition
+ 
+ digitalWrite(Buzzer,LOW);
   digitalWrite(LED,LOW);
   digitalWrite(M1,HIGH) ;
   digitalWrite(M2,LOW) ;
+  
   // initializing GSM/GPS
   SIM900.begin(9600); 
   lcd.begin(16,2); 
@@ -101,7 +107,9 @@ void loop()
         newData = true;  
     }
   }
-  // invoking GSM to send message when accident detected by vibration sensor
+
+
+// invoking GSM to send message when accident detected by vibration sensor
   if (newData)      
   {
     if (digitalRead(pin) == HIGH && state == 0 )
