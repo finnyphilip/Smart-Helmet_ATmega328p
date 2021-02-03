@@ -81,7 +81,7 @@ void loop()
     digitalWrite(M2,LOW);
   }
   
-  else if(value==0&& strtbtn==HIGH)
+  else if(value==0&& strtbtn==HIGH)// checking for required condition to turn on engine
   { 
     lcd.print("Vehicle Start");
     delay(200);
