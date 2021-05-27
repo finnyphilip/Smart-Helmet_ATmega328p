@@ -92,13 +92,13 @@ void loop()
     digitalWrite(M2,LOW) ;
   }
  
-  // encoding gps data
+  // encoding gps data// variable declaration
   bool newData = false;
   unsigned long chars;
   unsigned short sentences, failed;
-
-  
-  for (unsigned long start = millis(); millis() - start < 1000;)
+ 
+ //waiting till the data is collected and encoding it to variable c to use in gsm
+   for (unsigned long start = millis(); millis() - start < 1000;)
   {
     while (Serial.available())
     {
